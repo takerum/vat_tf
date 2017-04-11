@@ -3,25 +3,26 @@ import time
 import numpy
 import tensorflow as tf
 
-import source.tf_functions.layers as L
+import layers as L
 import vat
-from dataset.cifar10 import inputs, unlabeled_inputs
 
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('device', '/gpu:0', "device")
 
+tf.app.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
+
 tf.app.flags.DEFINE_string('logdir', "", "logdir")
 tf.app.flags.DEFINE_integer('seed', 1, "initial random seed")
-
 tf.app.flags.DEFINE_bool('validation', False, "")
 
 tf.app.flags.DEFINE_integer('batch_size', 32, "the number of examples in a batch")
 tf.app.flags.DEFINE_integer('ul_batch_size', 128, "the number of unlabeled examples in a batch")
 tf.app.flags.DEFINE_integer('eval_batch_size', 100, "the number of examples in a batch")
-tf.app.flags.DEFINE_integer('num_epochs', 1200, "the number of epochs for training")
-tf.app.flags.DEFINE_integer('epoch_decay_start', 800, "the number of epochs for training")
-tf.app.flags.DEFINE_integer('num_iter_per_epoch', 40, "the number of parameters updates per epoch")
+tf.app.flags.DEFINE_integer('eval_freq', 5, "the number of examples in a batch")
+tf.app.flags.DEFINE_integer('num_epochs', 120, "the number of epochs for training")
+tf.app.flags.DEFINE_integer('epoch_decay_start', 80, "the number of epochs for training")
+tf.app.flags.DEFINE_integer('num_iter_per_epoch', 400, "the number of parameters updates per epoch")
 tf.app.flags.DEFINE_float('learning_rate', 0.001, "initial leanring rate")
 tf.app.flags.DEFINE_float('mom1', 0.9, "initial momentum rate")
 tf.app.flags.DEFINE_float('mom2', 0.5, "initial momentum rate")
@@ -29,6 +30,17 @@ tf.app.flags.DEFINE_float('mom2', 0.5, "initial momentum rate")
 tf.app.flags.DEFINE_string('method', 'vat', "specification of the regularization method")
 tf.app.flags.DEFINE_float('balance_factor', 1.0,
                           "balance factor between neg. log-likelihood and (virtual) adversarial loss")
+
+
+if FLAGS.dataset == 'cifar10':
+    from cifar10 import inputs, unlabeled_inputs
+elif FLAGS.dataset == 'svhn':
+    from svhn import inputs, unlabeled_inputs 
+else: 
+    raise NotImplementedError
+
+
+NUM_EVAL_EXAMPLES = 5000
 
 
 def build_training_graph(x, y, ul_x, lr, mom):
@@ -84,7 +96,6 @@ def build_eval_graph(x, y, ul_x):
 
 
 def main(_):
-    print FLAGS.logdir
     numpy.random.seed(seed=FLAGS.seed)
     tf.set_random_seed(numpy.random.randint(1234))
     with tf.Graph().as_default() as g:
@@ -100,15 +111,15 @@ def main(_):
             images_eval_train, labels_eval_train = inputs(batch_size=FLAGS.eval_batch_size,
                                                           train=True,
                                                           validation=FLAGS.validation,
-                                                          shuffle=False)
+                                                          shuffle=True)
             ul_images_eval_train = unlabeled_inputs(batch_size=FLAGS.eval_batch_size,
                                                     validation=FLAGS.validation,
-                                                    shuffle=False)
+                                                    shuffle=True)
 
             images_eval_test, labels_eval_test = inputs(batch_size=FLAGS.eval_batch_size,
                                                         train=False,
                                                         validation=FLAGS.validation,
-                                                        shuffle=False)
+                                                        shuffle=True)
 
         with tf.device(FLAGS.device):
             lr = tf.placeholder(tf.float32, shape=[], name="learning_rate")
@@ -144,13 +155,11 @@ def main(_):
             summary_writer=None,
             save_model_secs=150, recovery_wait_secs=0)
 
-        print "Training..."
+        print("Training...")
         with sv.managed_session() as sess:
             for ep in range(FLAGS.num_epochs):
                 if sv.should_stop():
                     break
-                n_iter_per_epoch = FLAGS.num_iter_per_epoch
-                sum_loss = 0
 
                 if ep < FLAGS.epoch_decay_start:
                     feed_dict = {lr: FLAGS.learning_rate, mom: FLAGS.mom1}
@@ -159,20 +168,21 @@ def main(_):
                         FLAGS.num_epochs - FLAGS.epoch_decay_start)) * FLAGS.learning_rate
                     feed_dict = {lr: decayed_lr, mom: FLAGS.mom2}
 
+                sum_loss = 0
                 start = time.time()
-                for i in range(n_iter_per_epoch):
+                for i in range(FLAGS.num_iter_per_epoch):
                     _, batch_loss, _ = sess.run([train_op, loss, global_step],
                                                 feed_dict=feed_dict)
                     sum_loss += batch_loss
                 end = time.time()
-                print "Epoch:", ep, "CE_loss_train:", sum_loss / n_iter_per_epoch, "elapsed_time:", end - start
+                print("Epoch:", ep, "CE_loss_train:", sum_loss / FLAGS.num_iter_per_epoch, "elapsed_time:", end - start)
 
-                if (ep + 1) % 50 == 0 or ep + 1 == FLAGS.num_epochs:
+                if (ep + 1) % FLAGS.eval_freq == 0 or ep + 1 == FLAGS.num_epochs:
                     # Eval on training data
                     act_values_dict = {}
                     for key, _ in losses_eval_train.iteritems():
                         act_values_dict[key] = 0
-                    n_iter_per_epoch = 10000 / FLAGS.eval_batch_size
+                    n_iter_per_epoch = NUM_EVAL_EXAMPLES / FLAGS.eval_batch_size
                     for i in range(n_iter_per_epoch):
                         values = losses_eval_train.values()
                         act_values = sess.run(values)
@@ -181,7 +191,7 @@ def main(_):
                     summary = tf.Summary()
                     current_global_step = sess.run(global_step)
                     for key, value in act_values_dict.iteritems():
-                        print "train-" + key, value / n_iter_per_epoch
+                        print("train-" + key, value / n_iter_per_epoch)
                         summary.value.add(tag=key, simple_value=value / n_iter_per_epoch)
                     if writer_train is not None:
                         writer_train.add_summary(summary, current_global_step)
@@ -190,7 +200,7 @@ def main(_):
                     act_values_dict = {}
                     for key, _ in losses_eval_test.iteritems():
                         act_values_dict[key] = 0
-                    n_iter_per_epoch = 10000 / FLAGS.eval_batch_size
+                    n_iter_per_epoch = NUM_EVAL_EXAMPLES / FLAGS.eval_batch_size
                     for i in range(n_iter_per_epoch):
                         values = losses_eval_test.values()
                         act_values = sess.run(values)
@@ -199,7 +209,7 @@ def main(_):
                     summary = tf.Summary()
                     current_global_step = sess.run(global_step)
                     for key, value in act_values_dict.iteritems():
-                        print "test-" + key, value / n_iter_per_epoch
+                        print("test-" + key, value / n_iter_per_epoch)
                         summary.value.add(tag=key, simple_value=value / n_iter_per_epoch)
                     if writer_test is not None:
                         writer_test.add_summary(summary, current_global_step)

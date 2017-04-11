@@ -2,9 +2,8 @@ import tensorflow as tf
 import numpy
 import sys, os
 
-sys.path.append(os.path.realpath('../../../'))
-import source.tf_functions.layers as L
-from models import cnn
+import layers as L
+import cnn
 
 FLAGS = tf.app.flags.FLAGS
 
