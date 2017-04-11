@@ -94,6 +94,7 @@ def generate_batch(
             example,
             batch_size=batch_size,
             num_threads=num_preprocess_threads,
+            allow_smaller_final_batch=True,
             capacity=min_queue_examples + 3 * batch_size)
 
     return ret
@@ -113,8 +114,10 @@ def transform(image):
     return image
 
 
-def generate_filename_queue(filenames, data_dir):
+def generate_filename_queue(filenames, data_dir, num_epochs=None):
     print("filenames in queue:", filenames)
     for i in range(len(filenames)):
         filenames[i] = os.path.join(data_dir, filenames[i])
-    return tf.train.string_input_producer(filenames)
+    return tf.train.string_input_producer(filenames, num_epochs=num_epochs)
+
+

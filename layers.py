@@ -15,10 +15,10 @@ def lrelu(x, a=0.1):
         return tf.maximum(x, a * x)
 
 
-def bn(x, is_training=True, update_batch_stats=True, collections=None, name="bn"):
-    params_shape = x.get_shape()[-1:]
-    n = tf.to_float(tf.reduce_prod(x.get_shape()[:-1]))
-    axis = list(range(len(x.get_shape()) - 1))
+def bn(x, dim, is_training=True, update_batch_stats=True, collections=None, name="bn"):
+    params_shape = (dim,)
+    n = tf.to_float(tf.reduce_prod(tf.shape(x)[:-1]))
+    axis = list(range(int(tf.shape(x).get_shape().as_list()[0]) - 1))
     mean = tf.reduce_mean(x, axis)
     var = tf.reduce_mean(tf.pow(x - mean, 2.0), axis)
     avg_mean = tf.get_variable(
@@ -71,8 +71,8 @@ def bn(x, is_training=True, update_batch_stats=True, collections=None, name="bn"
     return gamma * z + beta
 
 
-def fc(x, dim_out, seed=None, name='fc'):
-    num_units_in = x.get_shape()[1]
+def fc(x, dim_in, dim_out, seed=None, name='fc'):
+    num_units_in = dim_in
     num_units_out = dim_out
     weights_initializer = tf.contrib.layers.variance_scaling_initializer(seed=seed)
 
@@ -86,8 +86,7 @@ def fc(x, dim_out, seed=None, name='fc'):
     return x
 
 
-def conv(x, ksize, stride, f_out, padding='SAME', use_bias=False, seed=None, name='conv'):
-    f_in = x.get_shape()[-1]
+def conv(x, ksize, stride, f_in, f_out, padding='SAME', use_bias=False, seed=None, name='conv'):
     shape = [ksize, ksize, f_in, f_out]
     initializer = tf.contrib.layers.variance_scaling_initializer(seed=seed)
     weights = tf.get_variable(name + '_W',

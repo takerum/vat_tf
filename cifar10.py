@@ -166,7 +166,7 @@ def prepare_dataset():
 
 def inputs(batch_size=100,
            train=True, validation=False,
-           shuffle=True):
+           shuffle=True, num_epochs=None):
     if validation:
         if train:
             filenames = ['labeled_train_val.tfrecords']
@@ -184,7 +184,7 @@ def inputs(batch_size=100,
 
     filenames = [os.path.join('seed' + str(FLAGS.dataset_seed), filename) for filename in filenames]
 
-    filename_queue = generate_filename_queue(filenames, FLAGS.data_dir)
+    filename_queue = generate_filename_queue(filenames, FLAGS.data_dir, num_epochs)
     image, label = read(filename_queue)
     image = transform(tf.cast(image, tf.float32)) if train else image
     return generate_batch([image, label], num_examples, batch_size, shuffle)

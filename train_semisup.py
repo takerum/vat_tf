@@ -12,7 +12,7 @@ tf.app.flags.DEFINE_string('device', '/gpu:0', "device")
 
 tf.app.flags.DEFINE_string('dataset', 'cifar10', "{cifar10, svhn}")
 
-tf.app.flags.DEFINE_string('logdir', "", "logdir")
+tf.app.flags.DEFINE_string('log_dir', "", "log_dir")
 tf.app.flags.DEFINE_integer('seed', 1, "initial random seed")
 tf.app.flags.DEFINE_bool('validation', False, "")
 
@@ -134,14 +134,14 @@ def main(_):
 
             init_op = tf.global_variables_initializer()
 
-        if not FLAGS.logdir:
+        if not FLAGS.log_dir:
             logdir = None
             writer_train = None
             writer_test = None
         else:
-            logdir = FLAGS.logdir
-            writer_train = tf.summary.FileWriter(FLAGS.logdir + "/train", g)
-            writer_test = tf.summary.FileWriter(FLAGS.logdir + "/test", g)
+            logdir = FLAGS.log_dir
+            writer_train = tf.summary.FileWriter(FLAGS.log_dir + "/train", g)
+            writer_test = tf.summary.FileWriter(FLAGS.log_dir + "/test", g)
 
         saver = tf.train.Saver(tf.global_variables())
         sv = tf.train.Supervisor(
