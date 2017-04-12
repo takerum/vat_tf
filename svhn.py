@@ -90,7 +90,8 @@ def prepare_dataset():
 
     labeled_ind = numpy.arange(FLAGS.num_labeled_examples)
     labeled_train_images, labeled_train_labels = _train_images[labeled_ind], _train_labels[labeled_ind]
-
+    _train_images = numpy.delete(_train_images, labeled_ind, 0)
+    _train_labels = numpy.delete(_train_labels, labeled_ind, 0)
     convert_images_and_labels(labeled_train_images,
                               labeled_train_labels,
                               os.path.join(dirpath, 'labeled_train.tfrecords'))
@@ -138,7 +139,6 @@ def inputs(batch_size=100,
             num_examples = NUM_EXAMPLES_TEST
 
     filenames = [os.path.join('seed' + str(FLAGS.dataset_seed), filename) for filename in filenames]
-
     filename_queue = generate_filename_queue(filenames, FLAGS.data_dir, num_epochs)
     image, label = read(filename_queue)
     image = transform(tf.cast(image, tf.float32)) if train else image
