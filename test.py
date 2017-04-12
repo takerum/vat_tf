@@ -85,7 +85,7 @@ def main(_):
                 sum_correct_examples += _n_correct
                 sum_m += _m
         except tf.errors.OutOfRangeError:
-            print('Done training -- epoch limit reached')
+            print('Done evaluating -- epoch limit reached')
         finally:
             # When done, ask the threads to stop.
             coord.request_stop()
