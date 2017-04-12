@@ -21,7 +21,7 @@ import os
 import sys
 import tarfile
 
-import numpy
+import numpy as np
 from scipy import linalg
 import glob
 import pickle
@@ -74,7 +74,7 @@ def load_cifar10():
 
     # Training set
     print("Loading training data...")
-    train_images = numpy.zeros((NUM_EXAMPLES_TRAIN, 3 * 32 * 32), dtype=numpy.float32)
+    train_images = np.zeros((NUM_EXAMPLES_TRAIN, 3 * 32 * 32), dtype=np.float32)
     train_labels = []
     for i, data_fn in enumerate(
             sorted(glob.glob(FLAGS.data_dir + '/cifar-10-batches-py/data_batch*'))):
@@ -82,23 +82,23 @@ def load_cifar10():
         train_images[i * 10000:(i + 1) * 10000] = batch['data']
         train_labels.extend(batch['labels'])
     train_images = (train_images - 127.5) / 255.
-    train_labels = numpy.asarray(train_labels, dtype=numpy.int64)
+    train_labels = np.asarray(train_labels, dtype=np.int64)
 
-    rand_ix = numpy.random.permutation(NUM_EXAMPLES_TRAIN)
+    rand_ix = np.random.permutation(NUM_EXAMPLES_TRAIN)
     train_images = train_images[rand_ix]
     train_labels = train_labels[rand_ix]
 
     print("Loading test data...")
     test = unpickle(FLAGS.data_dir + '/cifar-10-batches-py/test_batch')
-    test_images = test['data'].astype(numpy.float32)
+    test_images = test['data'].astype(np.float32)
     test_images = (test_images - 127.5) / 255.
-    test_labels = numpy.asarray(test['labels'], dtype=numpy.int64)
+    test_labels = np.asarray(test['labels'], dtype=np.int64)
 
     print("Apply ZCA whitening")
     components, mean, train_images = ZCA(train_images)
-    numpy.save('{}/components'.format(FLAGS.data_dir), components)
-    numpy.save('{}/mean'.format(FLAGS.data_dir), mean)
-    test_images = numpy.dot(test_images - mean, components.T)
+    np.save('{}/components'.format(FLAGS.data_dir), components)
+    np.save('{}/mean'.format(FLAGS.data_dir), mean)
+    test_images = np.dot(test_images - mean, components.T)
 
     train_images = train_images.reshape(
         (NUM_EXAMPLES_TRAIN, 3, 32, 32)).transpose((0, 2, 3, 1)).reshape((NUM_EXAMPLES_TRAIN, -1))
@@ -113,22 +113,22 @@ def prepare_dataset():
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
 
-    rng = numpy.random.RandomState(FLAGS.dataset_seed)
+    rng = np.random.RandomState(FLAGS.dataset_seed)
     rand_ix = rng.permutation(NUM_EXAMPLES_TRAIN)
     _train_images, _train_labels = train_images[rand_ix], train_labels[rand_ix]
 
     examples_per_class = int(FLAGS.num_labeled_examples / 10)
-    labeled_train_images = numpy.zeros((FLAGS.num_labeled_examples, 3072), dtype=numpy.float32)
-    labeled_train_labels = numpy.zeros((FLAGS.num_labeled_examples), dtype=numpy.int64)
+    labeled_train_images = np.zeros((FLAGS.num_labeled_examples, 3072), dtype=np.float32)
+    labeled_train_labels = np.zeros((FLAGS.num_labeled_examples), dtype=np.int64)
     for i in xrange(10):
-        ind = numpy.where(_train_labels == i)[0]
+        ind = np.where(_train_labels == i)[0]
         labeled_train_images[i * examples_per_class:(i + 1) * examples_per_class] \
             = _train_images[ind[0:examples_per_class]]
         labeled_train_labels[i * examples_per_class:(i + 1) * examples_per_class] \
             = _train_labels[ind[0:examples_per_class]]
-        _train_images = numpy.delete(_train_images,
+        _train_images = np.delete(_train_images,
                                      ind[0:examples_per_class], 0)
-        _train_labels = numpy.delete(_train_labels,
+        _train_labels = np.delete(_train_labels,
                                      ind[0:examples_per_class])
 
     rand_ix_labeled = rng.permutation(FLAGS.num_labeled_examples)
@@ -149,9 +149,9 @@ def prepare_dataset():
         labeled_train_images[FLAGS.num_valid_examples:], labeled_train_labels[FLAGS.num_valid_examples:]
     test_images_valid, test_labels_valid = \
         labeled_train_images[:FLAGS.num_valid_examples], labeled_train_labels[:FLAGS.num_valid_examples]
-    unlabeled_train_images_valid = numpy.concatenate(
+    unlabeled_train_images_valid = np.concatenate(
         (train_images_valid, _train_images), axis=0)
-    unlabeled_train_labels_valid = numpy.concatenate(
+    unlabeled_train_labels_valid = np.concatenate(
         (train_labels_valid, _train_labels), axis=0)
     convert_images_and_labels(train_images_valid,
                               train_labels_valid,

@@ -1,5 +1,6 @@
 import tensorflow as tf
-import os, sys, pickle, numpy
+import os, sys, pickle
+import numpy as np
 from scipy import linalg
 
 FLAGS = tf.app.flags.FLAGS
@@ -17,12 +18,12 @@ def unpickle(file):
 
 
 def ZCA(data, reg=1e-6):
-    mean = numpy.mean(data, axis=0)
+    mean = np.mean(data, axis=0)
     mdata = data - mean
-    sigma = numpy.dot(mdata.T, mdata) / mdata.shape[0]
+    sigma = np.dot(mdata.T, mdata) / mdata.shape[0]
     U, S, V = linalg.svd(sigma)
-    components = numpy.dot(numpy.dot(U, numpy.diag(1 / numpy.sqrt(S) + reg)), U.T)
-    whiten = numpy.dot(data - mean, components.T)
+    components = np.dot(np.dot(U, np.diag(1 / np.sqrt(S) + reg)), U.T)
+    whiten = np.dot(data - mean, components.T)
     return components, mean, whiten
 
 

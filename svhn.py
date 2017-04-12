@@ -6,7 +6,7 @@ import os
 import sys
 from scipy.io import loadmat
 
-import numpy
+import numpy as np
 from scipy import linalg
 import glob
 import pickle
@@ -22,7 +22,7 @@ DATA_URL_TEST = 'http://ufldl.stanford.edu/housenumbers/test_32x32.mat'
 
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('data_dir', '/tmp/svhn', "")
-tf.app.flags.DEFINE_integer('num_labeled_examples', 4000, "The number of labeled examples")
+tf.app.flags.DEFINE_integer('num_labeled_examples', 1000, "The number of labeled examples")
 tf.app.flags.DEFINE_integer('num_valid_examples', 1000, "The number of validation examples")
 tf.app.flags.DEFINE_integer('dataset_seed', 1, "dataset seed")
 
@@ -50,7 +50,7 @@ def maybe_download_and_extract():
     train_x = (-127.5 + train_data['X']) / 255.
     train_x = train_x.transpose((3, 0, 1, 2))
     train_x = train_x.reshape([train_x.shape[0], -1])
-    train_y = train_data['y'].flatten().astype(numpy.int32)
+    train_y = train_data['y'].flatten().astype(np.int32)
     train_y[train_y == 10] = 0
 
     # Test set
@@ -59,21 +59,21 @@ def maybe_download_and_extract():
     test_x = (-127.5 + test_data['X']) / 255.
     test_x = test_x.transpose((3, 0, 1, 2))
     test_x = test_x.reshape((test_x.shape[0], -1))
-    test_y = test_data['y'].flatten().astype(numpy.int32)
+    test_y = test_data['y'].flatten().astype(np.int32)
     test_y[test_y == 10] = 0
 
-    numpy.save('{}/train_images'.format(FLAGS.data_dir), train_x)
-    numpy.save('{}/train_labels'.format(FLAGS.data_dir), train_y)
-    numpy.save('{}/test_images'.format(FLAGS.data_dir), test_x)
-    numpy.save('{}/test_labels'.format(FLAGS.data_dir), test_y)
+    np.save('{}/train_images'.format(FLAGS.data_dir), train_x)
+    np.save('{}/train_labels'.format(FLAGS.data_dir), train_y)
+    np.save('{}/test_images'.format(FLAGS.data_dir), test_x)
+    np.save('{}/test_labels'.format(FLAGS.data_dir), test_y)
 
 
 def load_svhn():
     maybe_download_and_extract()
-    train_images = numpy.load('{}/train_images.npy'.format(FLAGS.data_dir)).astype(numpy.float32)
-    train_labels = numpy.load('{}/train_labels.npy'.format(FLAGS.data_dir)).astype(numpy.float32)
-    test_images = numpy.load('{}/test_images.npy'.format(FLAGS.data_dir)).astype(numpy.float32)
-    test_labels = numpy.load('{}/test_labels.npy'.format(FLAGS.data_dir)).astype(numpy.float32)
+    train_images = np.load('{}/train_images.npy'.format(FLAGS.data_dir)).astype(np.float32)
+    train_labels = np.load('{}/train_labels.npy'.format(FLAGS.data_dir)).astype(np.float32)
+    test_images = np.load('{}/test_images.npy'.format(FLAGS.data_dir)).astype(np.float32)
+    test_labels = np.load('{}/test_labels.npy'.format(FLAGS.data_dir)).astype(np.float32)
     return (train_images, train_labels), (test_images, test_labels)
 
 
@@ -83,15 +83,15 @@ def prepare_dataset():
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
 
-    rng = numpy.random.RandomState(FLAGS.dataset_seed)
+    rng = np.random.RandomState(FLAGS.dataset_seed)
     rand_ix = rng.permutation(NUM_EXAMPLES_TRAIN)
     print(rand_ix)
     _train_images, _train_labels = train_images[rand_ix], train_labels[rand_ix]
 
-    labeled_ind = numpy.arange(FLAGS.num_labeled_examples)
+    labeled_ind = np.arange(FLAGS.num_labeled_examples)
     labeled_train_images, labeled_train_labels = _train_images[labeled_ind], _train_labels[labeled_ind]
-    _train_images = numpy.delete(_train_images, labeled_ind, 0)
-    _train_labels = numpy.delete(_train_labels, labeled_ind, 0)
+    _train_images = np.delete(_train_images, labeled_ind, 0)
+    _train_labels = np.delete(_train_labels, labeled_ind, 0)
     convert_images_and_labels(labeled_train_images,
                               labeled_train_labels,
                               os.path.join(dirpath, 'labeled_train.tfrecords'))
@@ -105,9 +105,9 @@ def prepare_dataset():
     train_images_valid, train_labels_valid = labeled_train_images, labeled_train_labels
     test_images_valid, test_labels_valid = \
         _train_images[:FLAGS.num_valid_examples], _train_labels[:FLAGS.num_valid_examples]
-    unlabeled_train_images_valid = numpy.concatenate(
+    unlabeled_train_images_valid = np.concatenate(
         (train_images_valid, _train_images[FLAGS.num_valid_examples:]), axis=0)
-    unlabeled_train_labels_valid = numpy.concatenate(
+    unlabeled_train_labels_valid = np.concatenate(
         (train_labels_valid, _train_labels[FLAGS.num_valid_examples:]), axis=0)
     convert_images_and_labels(train_images_valid,
                               train_labels_valid,
