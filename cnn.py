@@ -22,7 +22,7 @@ def logit(x, is_training=True, update_batch_stats=True, stochastic=True, seed=12
     h = L.lrelu(L.bn(h, 128, is_training=is_training, update_batch_stats=update_batch_stats, name='b3'), FLAGS.lrelu_a)
 
     h = L.max_pool(h, ksize=2, stride=2)
-    h = tf.nn.dropout(h, keep_prob=FLAGS.keep_prob_hidden, seed=numpy.random.randint(123456)) if stochastic else h
+    h = tf.nn.dropout(h, keep_prob=FLAGS.keep_prob_hidden, seed=rng.randint(123456)) if stochastic else h
 
     h = L.conv(h, ksize=3, stride=1, f_in=128, f_out=256, seed=rng.randint(123456), name='c4')
     h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b4'), FLAGS.lrelu_a)
@@ -32,7 +32,7 @@ def logit(x, is_training=True, update_batch_stats=True, stochastic=True, seed=12
     h = L.lrelu(L.bn(h, 256, is_training=is_training, update_batch_stats=update_batch_stats, name='b6'), FLAGS.lrelu_a)
 
     h = L.max_pool(h, ksize=2, stride=2)
-    h = tf.nn.dropout(h, keep_prob=FLAGS.keep_prob_hidden, seed=numpy.random.randint(123456)) if stochastic else h
+    h = tf.nn.dropout(h, keep_prob=FLAGS.keep_prob_hidden, seed=rng.randint(123456)) if stochastic else h
 
     h = L.conv(h, ksize=3, stride=1, f_in=256, f_out=512, seed=rng.randint(123456), padding="VALID", name='c7')
     h = L.lrelu(L.bn(h, 512, is_training=is_training, update_batch_stats=update_batch_stats, name='b7'), FLAGS.lrelu_a)
