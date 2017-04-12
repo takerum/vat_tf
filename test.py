@@ -46,9 +46,8 @@ def main(_):
     with tf.Graph().as_default() as g:
         with tf.device("/cpu:0"):
             images_eval_train, _ = inputs(batch_size=FLAGS.finetune_batch_size,
-                                                          train=True,
-                                                          validation=FLAGS.validation,
-                                                          shuffle=True)
+                                          validation=FLAGS.validation,
+                                          shuffle=True)
             images_eval_test, labels_eval_test = inputs(batch_size=FLAGS.eval_batch_size,
                                                         train=False,
                                                         validation=FLAGS.validation,
@@ -71,7 +70,7 @@ def main(_):
         if ckpt and ckpt.model_checkpoint_path:
             print ckpt
             saver.restore(sess, ckpt.model_checkpoint_path)
-        sess.run(tf.initialize_local_variables()) 
+        sess.run(tf.local_variables_initializer()) 
         coord = tf.train.Coordinator()
         tf.train.start_queue_runners(sess=sess, coord=coord)
         print("Finetuning...")

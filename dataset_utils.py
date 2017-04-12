@@ -102,12 +102,10 @@ def generate_batch(
 
 def transform(image):
     image = tf.reshape(image, [32, 32, 3])
-    # image = image * 255. + 127.5
     if FLAGS.aug_trans or FLAGS.aug_flip:
         print("augmentation")
         if FLAGS.aug_trans:
             image = tf.pad(image, [[2, 2], [2, 2], [0, 0]])
-            # Random crop
             image = tf.random_crop(image, [32, 32, 3])
         if FLAGS.aug_flip:
             image = tf.image.random_flip_left_right(image)
