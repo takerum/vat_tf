@@ -16,6 +16,7 @@ tf.app.flags.DEFINE_string('log_dir', "", "log_dir")
 tf.app.flags.DEFINE_bool('validation', False, "")
 
 tf.app.flags.DEFINE_integer('finetune_batch_size', 100, "the number of examples in a batch")
+tf.app.flags.DEFINE_integer('finetune_iter', 100, "the number of iteration for finetuning of BN stats")
 tf.app.flags.DEFINE_integer('eval_batch_size', 500, "the number of examples in a batch")
 
 
@@ -25,9 +26,6 @@ elif FLAGS.dataset == 'svhn':
     from svhn import inputs, unlabeled_inputs 
 else: 
     raise NotImplementedError
-
-
-FINETUNE_ITER = 100
 
 
 def build_finetune_graph(x):
@@ -66,15 +64,14 @@ def main(_):
         sess = tf.Session()
         sess.run(init_op)
         ckpt = tf.train.get_checkpoint_state(FLAGS.log_dir)
-        print ckpt
+        print("Checkpoints:", ckpt)
         if ckpt and ckpt.model_checkpoint_path:
-            print ckpt
             saver.restore(sess, ckpt.model_checkpoint_path)
         sess.run(tf.local_variables_initializer()) 
         coord = tf.train.Coordinator()
         tf.train.start_queue_runners(sess=sess, coord=coord)
         print("Finetuning...")
-        for _ in range(FINETUNE_ITER):
+        for _ in range(FLAGS.finetune_iter):
             sess.run(finetune_op)
             
         sum_correct_examples= 0
@@ -85,12 +82,12 @@ def main(_):
                 sum_correct_examples += _n_correct
                 sum_m += _m
         except tf.errors.OutOfRangeError:
-            print('Done evaluating -- epoch limit reached')
+            print('Done evaluation -- epoch limit reached')
         finally:
             # When done, ask the threads to stop.
             coord.request_stop()
-        print("Test sum_correct_examples:{}, N:{}, acc:{}".format(
-            sum_correct_examples, sum_m, sum_correct_examples/float(sum_m)))
+        print("Test: num_test_examples:{}, num_correct_examples:{}, accuracy:{}".format(
+              sum_m, sum_correct_examples, sum_correct_examples/float(sum_m)))
    
      
 if __name__ == "__main__":
