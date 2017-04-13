@@ -18,18 +18,16 @@ tf.app.flags.DEFINE_bool('validation', False, "")
 
 tf.app.flags.DEFINE_integer('batch_size', 32, "the number of examples in a batch")
 tf.app.flags.DEFINE_integer('ul_batch_size', 128, "the number of unlabeled examples in a batch")
-tf.app.flags.DEFINE_integer('eval_batch_size', 100, "the number of examples in a batch")
-tf.app.flags.DEFINE_integer('eval_freq', 5, "the number of examples in a batch")
+tf.app.flags.DEFINE_integer('eval_batch_size', 100, "the number of eval examples in a batch")
+tf.app.flags.DEFINE_integer('eval_freq', 5, "")
 tf.app.flags.DEFINE_integer('num_epochs', 120, "the number of epochs for training")
-tf.app.flags.DEFINE_integer('epoch_decay_start', 80, "the number of epochs for training")
-tf.app.flags.DEFINE_integer('num_iter_per_epoch', 400, "the number of parameters updates per epoch")
+tf.app.flags.DEFINE_integer('epoch_decay_start', 80, "epoch of starting learning rate decay")
+tf.app.flags.DEFINE_integer('num_iter_per_epoch', 400, "the number of updates per epoch")
 tf.app.flags.DEFINE_float('learning_rate', 0.001, "initial leanring rate")
 tf.app.flags.DEFINE_float('mom1', 0.9, "initial momentum rate")
-tf.app.flags.DEFINE_float('mom2', 0.5, "initial momentum rate")
+tf.app.flags.DEFINE_float('mom2', 0.5, "momentum rate after epoch_decay_start")
 
-tf.app.flags.DEFINE_string('method', 'vat', "specification of the regularization method")
-tf.app.flags.DEFINE_float('balance_factor', 1.0,
-                          "balance factor between neg. log-likelihood and (virtual) adversarial loss")
+tf.app.flags.DEFINE_string('method', 'vat', "{vat, vatent, baseline}")
 
 
 if FLAGS.dataset == 'cifar10':
