@@ -34,6 +34,7 @@ def build_finetune_graph(x):
         finetune_op = tf.no_op()
     return finetune_op
 
+
 def build_eval_graph(x, y):
     logit = vat.forward(x, is_training=False, update_batch_stats=False)
     n_corrects = tf.cast(tf.equal(tf.argmax(logit, 1), tf.argmax(y,1)), tf.int32)
@@ -89,6 +90,6 @@ def main(_):
         print("Test: num_test_examples:{}, num_correct_examples:{}, accuracy:{}".format(
               sum_m, sum_correct_examples, sum_correct_examples/float(sum_m)))
    
-     
+
 if __name__ == "__main__":
     tf.app.run()
