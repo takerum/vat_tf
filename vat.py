@@ -30,27 +30,10 @@ def forward(x, is_training=True, update_batch_stats=True, seed=1234):
                      stochastic=False, seed=seed)
 
 
-def pred_mc_approx(x, is_training=False, update_batch_stats=False):
-    preds = []
-    for i in xrange(FLAGS.num_mc_samples):
-        preds.append(
-            tf.nn.softmax(
-                logit(x, is_training=is_training,
-                      update_batch_stats=update_batch_stats,
-                      stochastic=True, seed=i)
-            )
-        )
-    return sum(preds) / FLAGS.num_mc_samples
-
-
 def get_normalized_vector(d):
     d /= (1e-12 + tf.reduce_max(tf.abs(d), range(1, len(d.get_shape())), keep_dims=True))
     d /= tf.sqrt(1e-6 + tf.reduce_sum(tf.pow(d, 2.0), range(1, len(d.get_shape())), keep_dims=True))
     return d
-
-
-def dist_with_logit(q_logit, p_logit):
-    return L.kl_divergence_with_logit(q_logit, p_logit)
 
 
 def generate_virtual_adversarial_perturbation(x, logit, is_training=True):
