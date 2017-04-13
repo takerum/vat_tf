@@ -1,6 +1,9 @@
 # vat_tf
 Tensorflow implementation for reproducing the semi-supervised learning results on SVHN and CIFAR-10 dataset in the paper "Virtual Adversarial Training: a Regularization Method for Supervised and Semi-Supervised Learning" http://arxiv.org/abs/1704.xxxxx
 
+### Requirement
+tensorflow-gpu 1.0.0, scipy(for ZCA whitening)
+
 ## Preparation of dataset for semi-supervised learning
 On CIFAR-10
 
