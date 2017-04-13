@@ -128,23 +128,18 @@ def accuracy(logit, y):
     true = tf.argmax(y, 1)
     return tf.reduce_mean(tf.to_float(tf.equal(pred, true)))
 
-
-def ce_loss_with_logit(q_logit, p_logit):
-    q = tf.nn.softmax(q_logit)
-    return ce_loss(p_logit, q)
-
+  
+def logsoftmax(x):
+    xdev = x - tf.reduce_max(x, 1, keep_dims=True)
+    lsm = xdev - tf.log(tf.reduce_sum(tf.exp(xdev), 1, keep_dims=True))
+    return lsm
+  
 
 def kl_divergence_with_logit(q_logit, p_logit):
     q = tf.nn.softmax(q_logit)
     qlogq = tf.reduce_mean(tf.reduce_sum(q * logsoftmax(q_logit), 1))
     qlogp = tf.reduce_mean(tf.reduce_sum(q * logsoftmax(p_logit), 1))
     return qlogq - qlogp
-
-
-def logsoftmax(x):
-    xdev = x - tf.reduce_max(x, 1, keep_dims=True)
-    lsm = xdev - tf.log(tf.reduce_sum(tf.exp(xdev), 1, keep_dims=True))
-    return lsm
 
 
 def entropy_y_x(logit):
