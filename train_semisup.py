@@ -51,28 +51,26 @@ def build_training_graph(x, y, ul_x, lr, mom):
     )
     logit = vat.forward(x)
     nll_loss = L.ce_loss(logit, y)
-    scope = tf.get_variable_scope()
-    scope.reuse_variables()
-    if FLAGS.method == 'vat':
-        ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
-        vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
-        additional_loss = vat_loss
-    elif FLAGS.method == 'vatent':
-        ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
-        vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
-        ent_loss = L.entropy_y_x(ul_logit)
-        additional_loss = vat_loss + ent_loss
-    elif FLAGS.method == 'baseline':
-        additional_loss = 0
-    else:
-        raise NotImplementedError
+    with tf.variable_scope(tf.get_variable_scope(), reuse=True):
+        if FLAGS.method == 'vat':
+            ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
+            vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
+            additional_loss = vat_loss
+        elif FLAGS.method == 'vatent':
+            ul_logit = vat.forward(ul_x, is_training=True, update_batch_stats=False)
+            vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit)
+            ent_loss = L.entropy_y_x(ul_logit)
+            additional_loss = vat_loss + ent_loss
+        elif FLAGS.method == 'baseline':
+            additional_loss = 0
+        else:
+            raise NotImplementedError
+        loss = nll_loss + additional_loss
 
-    loss = nll_loss + additional_loss
-    with tf.variable_scope(tf.get_variable_scope(), reuse=False):
-        opt = tf.train.AdamOptimizer(learning_rate=lr, beta1=mom)
-        tvars = tf.trainable_variables()
-        grads_and_vars = opt.compute_gradients(loss, tvars)
-        train_op = opt.apply_gradients(grads_and_vars, global_step=global_step)
+    opt = tf.train.AdamOptimizer(learning_rate=lr, beta1=mom)
+    tvars = tf.trainable_variables()
+    grads_and_vars = opt.compute_gradients(loss, tvars)
+    train_op = opt.apply_gradients(grads_and_vars, global_step=global_step)
     return loss, train_op, global_step
 
 
