@@ -83,7 +83,7 @@ def build_eval_graph(x, y, ul_x):
     losses['Acc'] = acc
     scope = tf.get_variable_scope()
     scope.reuse_variables()
-    at_loss = vat.adversarial_loss(x, y, nll_loss, is_training=True)
+    at_loss = vat.adversarial_loss(x, y, nll_loss, is_training=False)
     losses['AT_loss'] = at_loss
     ul_logit = vat.forward(ul_x, is_training=False, update_batch_stats=False)
     vat_loss = vat.virtual_adversarial_loss(ul_x, ul_logit, is_training=False)
