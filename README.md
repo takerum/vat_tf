@@ -5,7 +5,7 @@
 Tensorflow implementation for reproducing the semi-supervised learning results on SVHN and CIFAR-10 dataset in the paper "Virtual Adversarial Training: a Regularization Method for Supervised and Semi-Supervised Learning" http://arxiv.org/abs/1704.03976
 
 ### Requirements
-tensorflow-gpu 1.1.0, scipy 1.9.0(for ZCA whitening)
+tensorflow-gpu 1.1.0, scipy 0.19.0(for ZCA whitening)
 
 ## Preparation of dataset for semi-supervised learning
 On CIFAR-10
