@@ -47,9 +47,9 @@ On SVHN
 ## Evaluation of the trained model
 On CIFAR-10
 
-```python test.py --dataset=cifar10 --data_dir=./dataset/cifar10/ --log_dir=./log/cifar10aug/```
+```python test.py --dataset=cifar10 --data_dir=./dataset/cifar10/ --log_dir=<path_to_log_dir> ```
 
 On SVHN
 
-```python test.py --dataset=svhn --data_dir=./dataset/svhn/ --log_dir=./log/svhnaug/ --top_bn```
+```python test.py --dataset=svhn --data_dir=./dataset/svhn/ --log_dir=<path_to_log_dir> --top_bn```
 
